@@ -3,19 +3,26 @@ name: Deploy Firebase
 on:
   push:
     branches:
-      - main  # Or your deployment branch
+      - main  # or your preferred branch
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v3
 
       - name: Install Firebase CLI
         run: npm install -g firebase-tools
 
+      - name: Install functions dependencies
+        run: |
+          cd functions
+          npm install
+        working-directory: ./functions
+
       - name: Deploy to Firebase
         env:
           FIREBASE_TOKEN: ${{ secrets.FIREBASE_CI_TOKEN }}
-        run: firebase deploy --only firestore,functions
+        run: firebase deploy --only functions,firestore
