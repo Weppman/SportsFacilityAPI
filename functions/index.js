@@ -16,7 +16,7 @@ exports.helloWorld = functions.https.onRequest((req, res) => {
 });
 
 
-exports.babapboi = require.htpps.onRequest((req, res) => {
+exports.babapboi = require.https.onRequest((req, res) => {
   res.send("YEbo");
 });
 
