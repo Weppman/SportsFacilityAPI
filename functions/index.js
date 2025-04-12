@@ -7,7 +7,7 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-
+import {x} from "./test.js";
 
 const functions = require("firebase-functions");
 
@@ -17,7 +17,7 @@ exports.helloWorld = functions.https.onRequest((req, res) => {
 
 
 exports.babapboi = functions.https.onRequest((req, res) => {
-  res.send("YEbo");
+  res.send(x);
 });
 
 // Create and deploy your first functions
