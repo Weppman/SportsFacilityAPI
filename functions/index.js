@@ -16,6 +16,10 @@ exports.helloWorld = functions.https.onRequest((req, res) => {
 });
 
 
+exports.babapboi = require.htpps.onRequest((req, res) => {
+  res.send("YEbo");
+});
+
 // Create and deploy your first functions
 // https://firebase.google.com/docs/functions/get-started
 
