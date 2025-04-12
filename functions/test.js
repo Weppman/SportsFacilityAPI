@@ -1,5 +1,4 @@
-function x () {
+function x() {
     return 1;
 }
-
 module.exports = { x };
