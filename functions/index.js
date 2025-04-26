@@ -11,22 +11,11 @@
 
 const admin = require('firebase-admin');
 const functions = require("firebase-functions");
-//const serviceAccount = require('./sportsfacility-ce031-firebase-adminsdk-fbsvc-a593c506df.json');
 
-//admin.initializeApp({
-  //credential: admin.credential.cert(serviceAccount)
-//});
 
-admin.initializeApp();
+admin.initializeApp(); 
 
 const db = admin.firestore();
-
-
-
-
-exports.helloWorld = functions.https.onRequest((req, res) => {
-  res.send("Hello from Firebase v1!");
-});
 
 exports.getBookingDataFull = functions.https.onRequest(async (req, res) => {
   try {
@@ -35,6 +24,9 @@ exports.getBookingDataFull = functions.https.onRequest(async (req, res) => {
     querySnapshot.forEach((doc) => {
       data.push({ id: doc.id, ...doc.data() });
     });
+
+    
+
     res.json(data);
   } catch (error) {
     console.error(error);
@@ -212,5 +204,42 @@ exports.addvenueData = functions.https.onRequest(async (req, res) => {
   }
 });
 
+
+exports.getResolved3Days = functions.https.onRequest(async (req, res) => {
+  try {
+    const querySnapshot = await db.collection("issuesData").get();
+    const data = [];
+
+
+    querySnapshot.forEach((doc) => {
+      data.push({ id: doc.id, ...doc.data() });
+    });
+
+    const unresolvedData = [];
+
+
+
+    data.forEach(data => {
+      if (data.dateResolved === "" || isOlderThanThreeDays(data.dateResolved)) {
+        unresolvedData.push(data);
+      }
+    });
+
+    
+    res.json(unresolvedData); 
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error fetching data");
+  }
+
+});
+
+function isOlderThanThreeDays(dateStr) {
+  const currentDate = new Date();
+  const dateResolved = new Date(dateStr);
+  const diffTime = currentDate - dateResolved;
+  const diffDays = diffTime / (1000 * 3600 * 24); // Convert milliseconds to days
+  return diffDays < 3;
+}
 
 
