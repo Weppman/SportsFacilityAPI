@@ -323,6 +323,7 @@ exports.updateVenueData = functions.https.onRequest(async (req, res) => {
         }
       }
 
+      
       console.log("ID: ", id);
 
       if (!id) {
@@ -412,9 +413,41 @@ exports.updateIssuesData = functions.https.onRequest(async (req, res) => {
 });
 
 
+exports.getAcceptedFutureBookings = functions.https.onRequest(async (req, res) => {
+  cors(req, res, async () => {
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Set to start of today
+      console.log("Today's Date: ", today.toISOString());
+
+      const snapshot = await db.collection("bookingData")
+        .where("date", ">=", today) // Only filter by date
+        .get();
+
+      if (snapshot.empty) {
+        return res.status(200).json({ success: true, bookings: [] });
+      }
+      console.log("Snapshot Size: ", snapshot);
+      const bookings = [];
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.status === "approved") { // Manually filter
+          bookings.push({ id: doc.id, ...data });
+        }
+      });
+
+      res.status(200).json({bookings });
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+});
+
+
 function isOlderThanThreeDays(dateStr) {
   const currentDate = new Date();
-  const dateResolved = new Date(dateStr);
+  const dateResolved = dateStr.toDate(); // Convert Firestore Timestamp to Date object
   const diffTime = currentDate - dateResolved;
   const diffDays = diffTime / (1000 * 3600 * 24); // Convert milliseconds to days
   return diffDays < 3;
