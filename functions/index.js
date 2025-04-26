@@ -11,6 +11,7 @@
 
 const admin = require('firebase-admin');
 const functions = require("firebase-functions");
+const { user } = require('firebase-functions/v1/auth');
 const cors = require('cors')({ origin: true });
 
 
@@ -269,6 +270,147 @@ exports.getResolved3Days = functions.https.onRequest(async (req, res) => {
   }
   );
 });
+
+exports.updateUserData = functions.https.onRequest(async (req, res) => {
+  cors(req, res, async () => {
+    try {
+      const jsonData =req.body 
+
+
+      console.log("Request Body: ", jsonData);
+
+      const id = jsonData.id;
+
+      const otherFields = {};
+      for (const key in jsonData) {
+        if (key !== "id") {
+          otherFields[key] = jsonData[key];
+        }
+      }
+
+      console.log("ID: ", id);
+
+      if (!id) {
+        return res.status(400).json({ success: false, message: "Missing 'id' in request body." });
+      }
+
+      const docRef = db.collection("userData").doc(id);
+
+      await docRef.update(otherFields); // Now update with the other fields
+
+      res.status(200).json({ success: true, message: "Document updated successfully." });
+    } catch (error) {
+      console.error("Error updating document: ", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+});
+
+exports.updateVenueData = functions.https.onRequest(async (req, res) => {
+  cors(req, res, async () => {
+    try {
+      const jsonData =req.body 
+
+
+      console.log("Request Body: ", jsonData);
+
+      const id = jsonData.id;
+
+      const otherFields = {};
+      for (const key in jsonData) {
+        if (key !== "id") {
+          otherFields[key] = jsonData[key];
+        }
+      }
+
+      console.log("ID: ", id);
+
+      if (!id) {
+        return res.status(400).json({ success: false, message: "Missing 'id' in request body." });
+      }
+
+      const docRef = db.collection("venueData").doc(id);
+
+      await docRef.update(otherFields); // Now update with the other fields
+
+      res.status(200).json({ success: true, message: "Document updated successfully." });
+    } catch (error) {
+      console.error("Error updating document: ", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+});
+
+exports.updateBookingData = functions.https.onRequest(async (req, res) => {
+  cors(req, res, async () => {
+    try {
+      const jsonData =req.body 
+
+
+      console.log("Request Body: ", jsonData);
+
+      const id = jsonData.id;
+
+      const otherFields = {};
+      for (const key in jsonData) {
+        if (key !== "id") {
+          otherFields[key] = jsonData[key];
+        }
+      }
+
+      console.log("ID: ", id);
+
+      if (!id) {
+        return res.status(400).json({ success: false, message: "Missing 'id' in request body." });
+      }
+
+      const docRef = db.collection("bookingData").doc(id);
+
+      await docRef.update(otherFields); // Now update with the other fields
+
+      res.status(200).json({ success: true, message: "Document updated successfully." });
+    } catch (error) {
+      console.error("Error updating document: ", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+});
+
+exports.updateIssuesData = functions.https.onRequest(async (req, res) => {
+  cors(req, res, async () => {
+    try {
+      const jsonData =req.body 
+
+
+      console.log("Request Body: ", jsonData);
+
+      const id = jsonData.id;
+
+      const otherFields = {};
+      for (const key in jsonData) {
+        if (key !== "id") {
+          otherFields[key] = jsonData[key];
+        }
+      }
+
+      console.log("ID: ", id);
+
+      if (!id) {
+        return res.status(400).json({ success: false, message: "Missing 'id' in request body." });
+      }
+
+      const docRef = db.collection("issuesData").doc(id);
+
+      await docRef.update(otherFields); // Now update with the other fields
+
+      res.status(200).json({ success: true, message: "Document updated successfully." });
+    } catch (error) {
+      console.error("Error updating document: ", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+});
+
 
 function isOlderThanThreeDays(dateStr) {
   const currentDate = new Date();
