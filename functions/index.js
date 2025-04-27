@@ -7,8 +7,7 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-
-
+const { Timestamp } = require('firebase/firestore');
 const admin = require('firebase-admin');
 const functions = require("firebase-functions");
 const { user } = require('firebase-functions/v1/auth');
@@ -253,9 +252,8 @@ exports.getResolved3Days = functions.https.onRequest(async (req, res) => {
 
     const unresolvedData = [];
 
-
-
     data.forEach(data => {
+      console.log("Data: ", data);
       if (data.dateResolved === "" || isOlderThanThreeDays(data.dateResolved)) {
         unresolvedData.push(data);
       }
@@ -270,6 +268,16 @@ exports.getResolved3Days = functions.https.onRequest(async (req, res) => {
   }
   );
 });
+
+
+function isOlderThanThreeDays(dateResolvedObj) {
+  const currentDate = new Date();
+  const timestamp = new Timestamp(dateResolvedObj.seconds, dateResolvedObj.nanoseconds);
+  const dateResolved = timestamp.toDate(); // Convert Firestore Timestamp to Date object
+  const diffTime = currentDate - dateResolved;
+  const diffDays = diffTime / (1000 * 3600 * 24); // Convert milliseconds to days
+  return diffDays < 3; // also fix the comparison, you want "older than 3 days"
+}
 
 exports.updateUserData = functions.https.onRequest(async (req, res) => {
   cors(req, res, async () => {
@@ -293,6 +301,8 @@ exports.updateUserData = functions.https.onRequest(async (req, res) => {
       if (!id) {
         return res.status(400).json({ success: false, message: "Missing 'id' in request body." });
       }
+
+
 
       const docRef = db.collection("userData").doc(id);
 
@@ -445,12 +455,6 @@ exports.getAcceptedFutureBookings = functions.https.onRequest(async (req, res) =
 });
 
 
-function isOlderThanThreeDays(dateStr) {
-  const currentDate = new Date();
-  const dateResolved = dateStr.toDate(); // Convert Firestore Timestamp to Date object
-  const diffTime = currentDate - dateResolved;
-  const diffDays = diffTime / (1000 * 3600 * 24); // Convert milliseconds to days
-  return diffDays < 3;
-}
+
 
 
