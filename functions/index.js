@@ -428,10 +428,11 @@ exports.getAcceptedFutureBookings = functions.https.onRequest(async (req, res) =
     try {
       const today = new Date();
       today.setHours(0, 0, 0, 0); // Set to start of today
+      const todayTimestamp = admin.firestore.Timestamp.fromDate(today);
       console.log("Today's Date: ", today.toISOString());
 
       const snapshot = await db.collection("bookingData")
-        .where("date", ">=", today) // Only filter by date
+        .where("date", ">=", todayTimestamp) // Only filter by date
         .get();
 
       if (snapshot.empty) {
