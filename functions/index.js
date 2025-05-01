@@ -423,6 +423,7 @@ exports.updateIssuesData = functions.https.onRequest(async (req, res) => {
 exports.getAcceptedFutureBookings = functions.https.onRequest(async (req, res) => {
   cors(req, res, async () => {
     try {
+
       // Get today's date in YYYY-MM-DD format
       const todayDate = new Date();
       todayDate.setHours(0, 0, 0, 0); // Set time to midnight
