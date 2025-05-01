@@ -7,15 +7,12 @@
  * See a full list of supported triggers at https://firebase.google.com/docs/functions
  */
 
-const { Timestamp } = require('firebase/firestore');
-const admin = require('firebase-admin');
 const functions = require("firebase-functions");
-const { user } = require('firebase-functions/v1/auth');
+const admin = require('firebase-admin');
+admin.initializeApp();
+
 const cors = require('cors')({ origin: true });
-
-
-admin.initializeApp(); 
-
+const { Timestamp } = require("firebase-admin/firestore");
 const db = admin.firestore();
 
 exports.getBookingDataFull = functions.https.onRequest(async (req, res) => {
@@ -426,18 +423,21 @@ exports.updateIssuesData = functions.https.onRequest(async (req, res) => {
 exports.getAcceptedFutureBookings = functions.https.onRequest(async (req, res) => {
   cors(req, res, async () => {
     try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // Set to start of today
-      console.log("Today's Date: ", today.toISOString());
 
+      // Get today's date in YYYY-MM-DD format
+      const todayDate = new Date();
+      todayDate.setHours(0, 0, 0, 0); // Set time to midnight
+      const today = Timestamp.fromDate(todayDate);
+      console.log("Today: ", today);
+      const test = {"seconds": today.seconds, "nanoseconds": today.nanoseconds};
+      // Get bookings from Firestore
       const snapshot = await db.collection("bookingData")
-        .where("date", ">=", today) // Only filter by date
+        .where("date", ">=", test) // Filter by date
         .get();
 
       if (snapshot.empty) {
-        return res.status(200).json({ success: true, bookings: [] });
+        return res.status(200).json({ success: true, bookings: [] , message: "No bookings found."});
       }
-      console.log("Snapshot Size: ", snapshot);
       const bookings = [];
       snapshot.forEach(doc => {
         const data = doc.data();
