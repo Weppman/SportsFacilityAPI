@@ -423,11 +423,6 @@ exports.updateIssuesData = functions.https.onRequest(async (req, res) => {
 exports.getAcceptedFutureBookings = functions.https.onRequest(async (req, res) => {
   cors(req, res, async () => {
     try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // Set to start of today
-      const todayTimestamp = admin.firestore.Timestamp.fromDate(today);
-      console.log("Today's Date: ", today.toISOString());
-
       // Get today's date in YYYY-MM-DD format
       const todayDate = new Date();
       todayDate.setHours(0, 0, 0, 0); // Set time to midnight
