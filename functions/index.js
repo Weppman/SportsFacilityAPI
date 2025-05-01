@@ -454,6 +454,40 @@ exports.getAcceptedFutureBookings = functions.https.onRequest(async (req, res) =
   });
 });
 
+exports.getPendingFutureBookings = functions.https.onRequest(async (req, res) => {
+  cors(req, res, async () => {
+    try {
+
+      // Get today's date in YYYY-MM-DD format
+      const todayDate = new Date();
+      todayDate.setHours(0, 0, 0, 0); // Set time to midnight
+      const today = Timestamp.fromDate(todayDate);
+      console.log("Today: ", today);
+      const test = {"seconds": today.seconds, "nanoseconds": today.nanoseconds};
+      // Get bookings from Firestore
+      const snapshot = await db.collection("bookingData")
+        .where("date", ">=", test) // Filter by date
+        .get();
+
+      if (snapshot.empty) {
+        return res.status(200).json({ success: true, bookings: [] , message: "No bookings found."});
+      }
+      const bookings = [];
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.status === "pending") { // Manually filter
+          bookings.push({ id: doc.id, ...data });
+        }
+      });
+
+      res.status(200).json({bookings });
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+});
+
 
 
 
