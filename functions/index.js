@@ -498,8 +498,8 @@ exports.getEnrichedUserAuthData = functions.https.onRequest(async (req, res) => 
 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        if (data.uuid) {
-          uuidList.push({ id: doc.id, uuid: data.uuid });
+        if (data.UUID) {
+          uuidList.push({ id: doc.id, uuid: data.UUID });
         }
       });
 
