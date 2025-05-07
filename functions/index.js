@@ -530,5 +530,26 @@ exports.getEnrichedUserAuthData = functions.https.onRequest(async (req, res) => 
 });
 
 
+exports.getUserDataUUID = functions.https.onRequest(async (req, res) => {
+  cors(req, res, async () => {
+    try {
+      const id = req.query.UUID;
+      if (!id) {
+        return res.status(400).send("Missing User UID");
+      }
+
+      const querySnapshot = await db.collection("userData").where("UUID", "==", id).get();
+
+      if (querySnapshot.empty) {
+        return res.status(404).send("No User found.");
+      }
+      const doc = querySnapshot.docs[0];
+      res.json({ id: doc.id, ...doc.data() });
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error fetching data");
+    }
+  });
+});
 
 
