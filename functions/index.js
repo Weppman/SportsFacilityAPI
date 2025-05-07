@@ -489,6 +489,46 @@ exports.getPendingFutureBookings = functions.https.onRequest(async (req, res) =>
 });
 
 
+exports.getEnrichedUserAuthData = functions.https.onRequest(async (req, res) => {
+  cors(req, res, async () => {
+    try {
+      // Step 1: Get UUIDs from Firestore `userData`
+      const querySnapshot = await db.collection("userData").get();
+      const uuidList = [];
+
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        if (data.uuid) {
+          uuidList.push({ id: doc.id, uuid: data.uuid });
+        }
+      });
+
+      if (uuidList.length === 0) {
+        return res.status(404).json({ success: false, message: "No UUIDs found in userData." });
+      }
+
+      // Step 2: Fetch Firebase Auth user data for each UUID
+      const getUsersResult = await admin.auth().getUsers(
+        uuidList.map(user => ({ uid: user.uuid }))
+      );
+
+      const enrichedUsers = getUsersResult.users.map((userRecord) => {
+        return {
+          uid: userRecord.uid,
+          email: userRecord.email,
+          displayName: userRecord.displayName,
+          photoURL: userRecord.photoURL
+        };
+      });
+
+      res.status(200).json({ success: true, users: enrichedUsers });
+    } catch (error) {
+      console.error("Error enriching user data: ", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
+});
+
 
 
 
