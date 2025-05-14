@@ -1,5 +1,8 @@
+
+require('dotenv').config();
 const { initializeApp } = require("firebase/app");
 const { getFirestore} = require("firebase/firestore");
+
 
 const firebaseConfig = {
     apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
