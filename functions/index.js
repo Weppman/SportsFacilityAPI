@@ -502,7 +502,7 @@ exports.getEnrichedUserAuthData = functions.https.onRequest(async (req, res) => 
       querySnapshot.forEach((doc) => {
         const data = doc.data();
         if (data.UUID) {
-          uuidList.push({ id: doc.id, uuid: data.UUID });
+          uuidList.push({ id: doc.id, uuid: data.UUID,UserType: data.UserType });
         }
       });
 
@@ -521,6 +521,7 @@ exports.getEnrichedUserAuthData = functions.https.onRequest(async (req, res) => 
         return {
           id: original?.id || null,
           uid: userRecord.uid,
+          UserType: original?.UserType || null,
           email: userRecord.email,
           displayName: userRecord.displayName,
           photoURL: userRecord.photoURL
@@ -816,11 +817,47 @@ exports.sendEmailMaintenanceNotification = functions.https.onRequest(async (req,
       res.status(500).send("Error fetching data");
     }
 
-
-
-
-
-
   });
 });
 
+exports.getEventData = functions.https.onRequest(async (req, res) => {
+  cors(req, res, async () => {
+    try {
+      const querySnapshot = await db.collection("eventsData").get();
+      const data = [];
+      querySnapshot.forEach((doc) => {
+        data.push({ id: doc.id, ...doc.data() });
+      });
+      res.json(data);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error fetching data");
+    }
+  }
+  );
+});
+
+exports.getUpdateEvent = functions.https.onRequest(async (req, res) => {
+  cors(req, res, async () => {
+try {
+      const collectionRef = db.collection("eventsData");
+      const snapshot = await collectionRef.get();
+      const newData = req.body;
+      // Delete all documents in the collection
+      const deletePromises = [];
+      snapshot.forEach((doc) => {
+        deletePromises.push(doc.ref.delete());
+      });
+      await Promise.all(deletePromises);
+
+      // Add a new document
+      await collectionRef.add({ ...newData });
+
+      res.status(200).send("Collection reset and new data inserted.");
+    } catch (error) {
+      console.error("Error resetting eventsData:", error);
+      res.status(500).send("Internal Server Error");
+    }
+  }
+  );
+});
