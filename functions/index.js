@@ -570,7 +570,7 @@ exports.sendEmailNotification = functions.https.onRequest(async (req, res) => {
     }
 
     const sendgridKey = process.env.SENDGRID_API_KEY;
-    sgMail.setApiKey("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");
+    sgMail.setApiKey(sendgridKey);
 
     const sendEmail = async (to, subject, text, html) => {
       const msg = {
