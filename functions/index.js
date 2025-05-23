@@ -559,26 +559,23 @@ exports.getUserDataUUID = functions.https.onRequest(async (req, res) => {
   });
 });
 
+
 exports.sendEmailNotification = functions.https.onRequest(async (req, res) => {
   cors(req, res, async () => {
 
     const sgMail = require('@sendgrid/mail');
-    
-    console.log(process.env);
 
     if (process.env.FUNCTIONS_EMULATOR === 'true') {
-      require('dotenv').config();  // Only load this locally
+      require('dotenv').config(); // Local only
     }
 
     const sendgridKey = process.env.SENDGRID_API_KEY;
-
-    console.log("SendGrid Key: ", sendgridKey);
     sgMail.setApiKey(sendgridKey);
 
     const sendEmail = async (to, subject, text, html) => {
       const msg = {
         to,
-        from: 'joweppelman@gmail.com', // Must be verified in SendGrid
+        from: 'joweppelman@gmail.com',
         subject,
         text,
         html,
@@ -613,7 +610,6 @@ exports.sendEmailNotification = functions.https.onRequest(async (req, res) => {
 
       const enrichedUsers = getUsersResult.users.map((userRecord) => {
         const original = uuidList.find(u => u.uuid === userRecord.uid);
-
         return {
           id: original?.id || null,
           uid: userRecord.uid,
@@ -623,7 +619,6 @@ exports.sendEmailNotification = functions.https.onRequest(async (req, res) => {
         };
       });
 
-      console.log("User Data: ", enrichedUsers);
       userData = enrichedUsers;
 
       const queryBookingSnapshot = await db.collection("bookingData").get();
@@ -631,64 +626,73 @@ exports.sendEmailNotification = functions.https.onRequest(async (req, res) => {
       queryBookingSnapshot.forEach((doc) => {
         bookingData.push({ id: doc.id, ...doc.data() });
       });
-      console.log("Booking Data: ", bookingData);
-
-      const toDate = (firestoreTimestamp) => new Date(firestoreTimestamp.seconds * 1000);
 
       const now = new Date();
       const threeDaysFromNow = new Date();
       threeDaysFromNow.setDate(now.getDate() + 3);
 
       const upcomingBookings = bookingData.filter(booking => {
-        const bookingDate = toDate(booking.date);
+        const timestamp = new Timestamp(booking.date.seconds, booking.date.nanoseconds);
+        const bookingDate = timestamp.toDate();
         return bookingDate >= now && bookingDate <= threeDaysFromNow;
       });
 
       const bookingsByUID = {};
       for (const booking of upcomingBookings) {
         if (!bookingsByUID[booking.UID]) {
-          bookingsByUID[booking.UID] = [];
+          bookingsByUID[booking.UUID] = [];
         }
-        bookingsByUID[booking.UID].push(booking);
+        bookingsByUID[booking.UUID].push(booking);
       }
 
-      // Step 3: Create the final grouped result
+      console.log("Bookings by UID: ", bookingsByUID);
+
       const groupedUsersWithBookings = userData
         .filter(user => bookingsByUID[user.uid])
         .map(user => ({
           user,
           bookings: bookingsByUID[user.uid]
         }));
-
-      console.dir(groupedUsersWithBookings, { depth: null });
+      
+      
 
       for (const { user, bookings } of groupedUsersWithBookings) {
         const subject = `Upcoming Bookings Reminder`;
+
         const text = `Hi ${user.displayName},\n\nYou have upcoming bookings:\n` +
-          bookings.map(b => `- ${b.venueID} on ${new Date(b.date.seconds * 1000).toLocaleString()}`).join('\n');
+          bookings.map(b => {
+            const timestamp = new Timestamp(b.date.seconds, b.date.nanoseconds);
+            const dateOnly = timestamp.toDate().toLocaleDateString(); // date without time
+            return `- ${b.venueID} on ${dateOnly} at ${b.timeSlot}`;
+          }).join('\n');
 
         const html = `
           <p>Hi ${user.displayName},</p>
           <p>You have upcoming bookings:</p>
           <ul>
-            ${bookings.map(b => `<li>${b.venueID} on ${new Date(b.date.seconds * 1000).toLocaleString()}</li>`).join('')}
+            ${bookings.map(b => {
+              const timestamp = new Timestamp(b.date.seconds, b.date.nanoseconds);
+              const dateOnly = timestamp.toDate().toLocaleDateString();
+              return `<li>${b.venueID} on ${dateOnly} from ${b.timeSlot}</li>`;
+            }).join('')}
           </ul>
         `;
+
         console.log(`Preparing to send email to ${user.email}`);
         await sendEmail(user.email, subject, text, html);
       }
 
-
-
       res.status(200).json({ success: true });
+
     } catch (error) {
-      console.error(`Error sending email to ${to}:`, error);
+      console.error(`Error sending email:`, error);
       if (error.response && error.response.body) {
         console.error("SendGrid error response:", error.response.body);
       }
     }
   });
 });
+
 
 exports.sendEmailMaintenanceNotification = functions.https.onRequest(async (req, res) => {
   cors(req, res, async () => {
@@ -770,6 +774,9 @@ exports.sendEmailMaintenanceNotification = functions.https.onRequest(async (req,
 
       // Compose the email content
       const reportedDate = new Date(data.dateReported.seconds * 1000).toLocaleString();
+      const resolveddDate = new Date(data.dateResolved.seconds * 1000).toLocaleString();
+
+      console.log("Data: ", data);
 
       const subject = `Maintenance Issue Reported: ${data.facility}`;
       const text = `Hello,
@@ -783,8 +790,8 @@ exports.sendEmailMaintenanceNotification = functions.https.onRequest(async (req,
                     - Date Reported: ${reportedDate}
                     - Feedback: ${data.feedback || "N/A"}
                     - Status: ${data.status}
-                    - Date Resolved: ${data.dateResolved || "Not resolved yet"}
-
+                    - Date Resolved: ${resolveddDate}
+                  
                     Please check the issue tracking system for more details.
 
                     Regards,
@@ -799,7 +806,7 @@ exports.sendEmailMaintenanceNotification = functions.https.onRequest(async (req,
                         <li><strong>Date Reported:</strong> ${reportedDate}</li>
                         <li><strong>Feedback:</strong> ${data.feedback || "N/A"}</li>
                         <li><strong>Status:</strong> ${data.status}</li>
-                        <li><strong>Date Resolved:</strong> ${data.dateResolved || "Not resolved yet"}</li>
+                        <li><strong>Date Resolved:</strong> ${resolveddDate}</li>
                       </ul>
                       <p>Please check the issue tracking system for more details.</p>
                       <p>Regards,<br>Facility Management System</p>
@@ -819,6 +826,7 @@ exports.sendEmailMaintenanceNotification = functions.https.onRequest(async (req,
 
   });
 });
+
 
 exports.getEventData = functions.https.onRequest(async (req, res) => {
   cors(req, res, async () => {
