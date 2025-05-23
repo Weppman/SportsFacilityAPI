@@ -637,12 +637,14 @@ exports.sendEmailNotification = functions.https.onRequest(async (req, res) => {
         return bookingDate >= now && bookingDate <= threeDaysFromNow;
       });
 
+      console.log("Upcoming Bookings: ", upcomingBookings);
+
       const bookingsByUID = {};
       for (const booking of upcomingBookings) {
         if (!bookingsByUID[booking.UID]) {
-          bookingsByUID[booking.UUID] = [];
+          bookingsByUID[booking.UID] = [];
         }
-        bookingsByUID[booking.UUID].push(booking);
+        bookingsByUID[booking.UID].push(booking);
       }
 
       console.log("Bookings by UID: ", bookingsByUID);
