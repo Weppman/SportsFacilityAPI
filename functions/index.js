@@ -570,7 +570,7 @@ exports.sendEmailNotification = functions.https.onRequest(async (req, res) => {
     }
 
     const sendgridKey = process.env.SENDGRID_API_KEY;
-    sgMail.setApiKey(sendgridKey);
+    sgMail.setApiKey("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");
 
     const sendEmail = async (to, subject, text, html) => {
       const msg = {
@@ -637,12 +637,14 @@ exports.sendEmailNotification = functions.https.onRequest(async (req, res) => {
         return bookingDate >= now && bookingDate <= threeDaysFromNow;
       });
 
+      console.log("Upcoming Bookings: ", upcomingBookings);
+
       const bookingsByUID = {};
       for (const booking of upcomingBookings) {
         if (!bookingsByUID[booking.UID]) {
-          bookingsByUID[booking.UUID] = [];
+          bookingsByUID[booking.UID] = [];
         }
-        bookingsByUID[booking.UUID].push(booking);
+        bookingsByUID[booking.UID].push(booking);
       }
 
       console.log("Bookings by UID: ", bookingsByUID);
