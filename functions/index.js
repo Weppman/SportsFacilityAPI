@@ -301,10 +301,10 @@ exports.getResolved3Days = functions.https.onRequest(async (req, res) => {
 function isOlderThanThreeDays(dateResolvedObj) {
   const currentDate = new Date();
   const timestamp = new Timestamp(dateResolvedObj.seconds, dateResolvedObj.nanoseconds);
-  const dateResolved = timestamp.toDate(); // Convert Firestore Timestamp to Date object
+  const dateResolved = timestamp.toDate();
   const diffTime = currentDate - dateResolved;
-  const diffDays = diffTime / (1000 * 3600 * 24); // Convert milliseconds to days
-  return diffDays < 3; // also fix the comparison, you want "older than 3 days"
+  const diffDays = diffTime / (1000 * 3600 * 24);
+  return diffDays < 3;
 }
 
 exports.updateUserData = functions.https.onRequest(async (req, res) => {
@@ -334,7 +334,7 @@ exports.updateUserData = functions.https.onRequest(async (req, res) => {
 
       const docRef = db.collection("userData").doc(id);
 
-      await docRef.update(otherFields); // Now update with the other fields
+      await docRef.update(otherFields); 
 
       res.status(200).json({ success: true, message: "Document updated successfully." });
     } catch (error) {
@@ -370,7 +370,7 @@ exports.updateVenueData = functions.https.onRequest(async (req, res) => {
 
       const docRef = db.collection("venueData").doc(id);
 
-      await docRef.update(otherFields); // Now update with the other fields
+      await docRef.update(otherFields); 
 
       res.status(200).json({ success: true, message: "Document updated successfully." });
     } catch (error) {
@@ -405,7 +405,7 @@ exports.updateBookingData = functions.https.onRequest(async (req, res) => {
 
       const docRef = db.collection("bookingData").doc(id);
 
-      await docRef.update(otherFields); // Now update with the other fields
+      await docRef.update(otherFields); 
 
       res.status(200).json({ success: true, message: "Document updated successfully." });
     } catch (error) {
@@ -440,7 +440,7 @@ exports.updateIssuesData = functions.https.onRequest(async (req, res) => {
 
       const docRef = db.collection("issuesData").doc(id);
 
-      await docRef.update(otherFields); // Now update with the other fields
+      await docRef.update(otherFields); 
 
       res.status(200).json({ success: true, message: "Document updated successfully." });
     } catch (error) {
@@ -455,15 +455,15 @@ exports.getAcceptedFutureBookings = functions.https.onRequest(async (req, res) =
   cors(req, res, async () => {
     try {
 
-      // Get today's date in YYYY-MM-DD format
+
       const todayDate = new Date();
-      todayDate.setHours(0, 0, 0, 0); // Set time to midnight
+      todayDate.setHours(0, 0, 0, 0); 
       const today = Timestamp.fromDate(todayDate);
       console.log("Today: ", today);
       const test = { "seconds": today.seconds, "nanoseconds": today.nanoseconds };
-      // Get bookings from Firestore
+
       const snapshot = await db.collection("bookingData")
-        .where("date", ">=", test) // Filter by date
+        .where("date", ">=", test) 
         .get();
 
       if (snapshot.empty) {
@@ -472,7 +472,7 @@ exports.getAcceptedFutureBookings = functions.https.onRequest(async (req, res) =
       const bookings = [];
       snapshot.forEach(doc => {
         const data = doc.data();
-        if (data.status === "approved") { // Manually filter
+        if (data.status === "approved") { 
           bookings.push({ id: doc.id, ...data });
         }
       });
@@ -489,15 +489,14 @@ exports.getPendingFutureBookings = functions.https.onRequest(async (req, res) =>
   cors(req, res, async () => {
     try {
 
-      // Get today's date in YYYY-MM-DD format
       const todayDate = new Date();
-      todayDate.setHours(0, 0, 0, 0); // Set time to midnight
+      todayDate.setHours(0, 0, 0, 0); 
       const today = Timestamp.fromDate(todayDate);
       console.log("Today: ", today);
       const test = { "seconds": today.seconds, "nanoseconds": today.nanoseconds };
-      // Get bookings from Firestore
+
       const snapshot = await db.collection("bookingData")
-        .where("date", ">=", test) // Filter by date
+        .where("date", ">=", test) 
         .get();
 
       if (snapshot.empty) {
@@ -506,7 +505,7 @@ exports.getPendingFutureBookings = functions.https.onRequest(async (req, res) =>
       const bookings = [];
       snapshot.forEach(doc => {
         const data = doc.data();
-        if (data.status === "pending") { // Manually filter
+        if (data.status === "pending") { 
           bookings.push({ id: doc.id, ...data });
         }
       });
