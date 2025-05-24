@@ -693,7 +693,10 @@ exports.sendEmailNotification = functions.https.onRequest(async (req, res) => {
         const text = `Hi ${user.displayName},\n\nYou have upcoming bookings:\n` +
           bookings.map(b => {
             const timestamp = new Timestamp(b.date.seconds, b.date.nanoseconds);
-            const dateOnly = timestamp.toDate().toLocaleDateString(); // date without time
+              const date = timestamp.toDate();
+              date.setDate(date.getDate() + 1); // Add 1 day locally
+              const dateOnly = date.toLocaleDateString().split('T')[0]; // date without time
+              console.log("Booking Date: ", dateOnly);
             return `- ${b.venueID} on ${dateOnly} at ${b.timeSlot}`;
           }).join('\n');
 
@@ -703,7 +706,10 @@ exports.sendEmailNotification = functions.https.onRequest(async (req, res) => {
           <ul>
             ${bookings.map(b => {
               const timestamp = new Timestamp(b.date.seconds, b.date.nanoseconds);
-              const dateOnly = timestamp.toDate().toLocaleDateString();
+              const date = timestamp.toDate();
+              date.setDate(date.getDate() + 1); // Add 1 day locally
+              const dateOnly = date.toLocaleDateString().split('T')[0]; // date without time
+              console.log("Booking Date: ", dateOnly);
               return `<li>${b.venueID} on ${dateOnly} from ${b.timeSlot}</li>`;
             }).join('')}
           </ul>
