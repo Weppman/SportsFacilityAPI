@@ -37,6 +37,34 @@ exports.getBookingDataFull = functions.https.onRequest(async (req, res) => {
   });
 });
 
+exports.getBookingDataByUser = functions.https.onRequest(async (req, res) => {
+  cors(req, res, async () => {
+    try {
+      const uid = req.query.uid; // 🔄 Get UID from query
+
+      if (!uid) {
+        return res.status(400).send("Missing UID in query");
+      }
+
+      const querySnapshot = await db
+        .collection("bookingData")
+        .where("UID", "==", uid)
+        .get();
+
+      const data = [];
+      querySnapshot.forEach((doc) => {
+        data.push({ id: doc.id, ...doc.data() });
+      });
+
+      res.json(data);
+    } catch (error) {
+      console.error(error);
+      res.status(500).send("Error fetching data");
+    }
+  });
+});
+
+
 exports.getBookingDataVal = functions.https.onRequest(async (req, res) => {
   cors(req, res, async () => {
     try {
@@ -570,6 +598,7 @@ exports.sendEmailNotification = functions.https.onRequest(async (req, res) => {
     }
 
     const sendgridKey = process.env.SENDGRID_API_KEY;
+    console.log("SendGrid Key: ", sendgridKey);
     sgMail.setApiKey(sendgridKey);
 
     const sendEmail = async (to, subject, text, html) => {
@@ -585,7 +614,7 @@ exports.sendEmailNotification = functions.https.onRequest(async (req, res) => {
         await sgMail.send(msg);
         console.log(`Email sent to ${to}`);
       } catch (error) {
-        console.error(`Error sending email to ${to}:`, error);
+        console.error(`Error sending email to ${to}:`, error.errors);
       }
     };
 
@@ -816,8 +845,9 @@ exports.sendEmailMaintenanceNotification = functions.https.onRequest(async (req,
 
       // Send email to each user
       for (const email of emailList) {
-        await sendEmail(email, subject, text, html);
-        console.log(`Email sent to ${email}`);
+
+        await sendEmail(email.email, subject, text, html);
+        console.log(`Email sent to ${email.email}`);
       }
 
       res.status(200).json({ success: true });
