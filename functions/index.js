@@ -815,10 +815,10 @@ exports.sendEmailMaintenanceNotification = functions.https.onRequest(async (req,
 
       console.log("Data: ", data);
 
-      const subject = `Maintenance Issue Reported: ${data.facility}`;
+      const subject = `Maintenance Issue Updated: ${data.facility}`;
       const text = `Hello,
 
-                    A new maintenance issue has been reported.
+                    A new maintenance issue has been updated.
 
                     Details:
                     - Facility: ${data.facility}
